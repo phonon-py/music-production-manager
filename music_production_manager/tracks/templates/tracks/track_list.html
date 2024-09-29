@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>トラック一覧</h1>
+  <a href="{% url 'track_create' %}">新規トラック追加</a>
+  <ul>
+    {% for track in tracks %}
+      <li>
+        <a href="{% url 'track_detail' pk=track.pk %}">{{ track.title }}</a>
+      </li>
+    {% empty %}
+      <li>トラックがありません。</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
