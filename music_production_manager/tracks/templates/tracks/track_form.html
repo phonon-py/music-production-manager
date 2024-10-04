@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  {% if form.instance.pk %}
-    {{ form.instance.title }}の編集
+  {% if form.initial %}
+    {{ form.initial.title }}の編集
   {% else %}
     新規トラック追加
   {% endif %}
@@ -11,8 +11,8 @@
 
 {% block content %}
   <h1>
-    {% if form.instance.pk %}
-      {{ form.instance.title }}の編集
+    {% if form.initial %}
+      {{ form.initial.title }}の編集
     {% else %}
       新規トラック追加
     {% endif %}

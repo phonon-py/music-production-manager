@@ -4,8 +4,9 @@
 
 {% block content %}
   <h1>{{ track.title }}</h1>
-  <p>Spotify URL: <a href="{{ track.spotify_url }}">{{ track.spotify_url }}</a></p>
-  <p>FLPファイルパス: {{ track.flp_file_path }}</p>
+  <p>Spotify URL: {{ track.spotify_url|default:"未設定" }}</p>
+  <p>FLP File Path: {{ track.flp_file_path|default:"未設定" }}</p>
+  <p>ステータス: {{ track.project_set.first.get_status_display }}</p>
   <a href="{% url 'track_edit' pk=track.pk %}" class="btn">編集</a>
   <a href="{% url 'track_delete' pk=track.pk %}" class="btn btn-danger">削除</a>
   <a href="{% url 'track_list' %}" class="btn btn-secondary">戻る</a>

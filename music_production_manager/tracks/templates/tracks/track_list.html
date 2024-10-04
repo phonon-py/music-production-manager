@@ -2,14 +2,39 @@
 
 {% block content %}
   <h1>トラック一覧</h1>
+  
+  <!-- ここから検索フォーム -->
+  <form method="get" action="{% url 'track_list' %}">
+    <input type="text" name="search" value="{{ search_query }}" placeholder="曲名で検索">
+    <select name="status">
+      <option value="">状態を選択</option>
+      <option value="Idea" {% if status_filter == 'Idea' %}selected{% endif %}>アイデア段階</option>
+      <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>制作中</option>
+      <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>完成</option>
+    </select>
+    <label for="start_date">開始日:</label>
+    <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+    <label for="end_date">終了日:</label>
+    <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+    <button type="submit">検索</button>
+  </form>
+  <!-- ここまで検索フォーム -->
+
   <a href="{% url 'track_create' %}">新規トラック追加</a>
+  
+  <!-- ここからトラックリスト -->
   <ul>
     {% for track in tracks %}
       <li>
         <a href="{% url 'track_detail' pk=track.pk %}">{{ track.title }}</a>
+        - 状態: {{ track.project.status }}
+        {% if track.sale_set.exists %}
+          - 最新の売上: {{ track.sale_set.latest.sale_date|date:"Y-m-d" }}
+        {% endif %}
       </li>
     {% empty %}
-      <li>トラックがありません。</li>
+      <li>条件に合うトラックがありません。</li>
     {% endfor %}
   </ul>
+  <!-- ここまでトラックリスト -->
 {% endblock %}
