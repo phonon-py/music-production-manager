@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
+
 from .models import Track
+
 
 class TrackModelTests(TestCase):
     def test_track_creation(self):

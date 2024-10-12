@@ -18,7 +18,20 @@ class Track(models.Model):
 
     def __str__(self):
         return self.title
-        
+
+class SpotifyInfo(models.Model):
+    track = models.OneToOneField(Track, on_delete=models.CASCADE, related_name='spotify_info')
+    artist_name = models.CharField(max_length=100)
+    track_name = models.CharField(max_length=100)
+    key = models.CharField(max_length=2, blank=True, null=True)
+    mode = models.CharField(max_length=5, blank=True, null=True)
+    bpm = models.FloatField(blank=True, null=True)
+    genres = models.TextField(blank=True)
+    related_artists = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Spotify Info for {self.track.title}"
+
 class Project(models.Model):
     STATUS_CHOICES = [
         ('IDEA', 'アイデア段階'),
@@ -43,4 +56,4 @@ class Sale(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.track.title} - {self.platform.name} - {self.sale_date}"
+        return f"{self.track.title} - {self.sale_date}"

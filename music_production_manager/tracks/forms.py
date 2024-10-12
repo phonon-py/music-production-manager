@@ -1,5 +1,7 @@
 from django import forms
-from .models import Track, Project
+
+from .models import Platform, Project, Track
+
 
 class TrackForm(forms.ModelForm):
     class Meta:
@@ -16,3 +18,9 @@ class TrackProjectForm(forms.Form):
     spotify_url = forms.URLField(required=False)
     flp_file_path = forms.CharField(max_length=255, required=False)
     status = forms.ChoiceField(choices=Project.STATUS_CHOICES)
+    platforms = forms.ModelMultipleChoiceField(
+        queryset=Platform.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='プラットフォーム'
+    )

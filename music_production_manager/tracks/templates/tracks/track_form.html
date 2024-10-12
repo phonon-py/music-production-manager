@@ -1,26 +1,30 @@
-{% extends 'base.html' %}
-
-{% block title %}
-  {% if form.initial %}
-    {{ form.initial.title }}の編集
-  {% else %}
-    新規トラック追加
-  {% endif %}
-  - {{ block.super }}
-{% endblock %}
-
-{% block content %}
-  <h1>
-    {% if form.initial %}
-      {{ form.initial.title }}の編集
-    {% else %}
-      新規トラック追加
-    {% endif %}
-  </h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn">保存</button>
-    <a href="{% url 'track_list' %}" class="btn btn-secondary">キャンセル</a>
-  </form>
-{% endblock %}
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+      {{ form.title.errors }}
+      <label for="{{ form.title.id_for_label }}">タイトル:</label>
+      {{ form.title }}
+  </div>
+  <div>
+      {{ form.spotify_url.errors }}
+      <label for="{{ form.spotify_url.id_for_label }}">Spotify URL:</label>
+      {{ form.spotify_url }}
+  </div>
+  <div>
+      {{ form.flp_file_path.errors }}
+      <label for="{{ form.flp_file_path.id_for_label }}">FLPファイルパス:</label>
+      {{ form.flp_file_path }}
+  </div>
+  <div>
+      {{ form.status.errors }}
+      <label for="{{ form.status.id_for_label }}">ステータス:</label>
+      {{ form.status }}
+  </div>
+  <div>
+      {{ form.platforms.errors }}
+      <label for="{{ form.platforms.id_for_label }}">プラットフォーム:</label>
+      {{ form.platforms }}
+  </div>
+  <button type="submit">保存</button>
+</form>
