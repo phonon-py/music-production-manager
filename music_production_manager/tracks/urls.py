@@ -8,4 +8,5 @@ urlpatterns = [
     path('track/new/', views.track_create, name='track_create'),
     path('track/<int:pk>/edit/', views.track_edit, name='track_edit'),
     path('track/<int:pk>/delete/', views.track_delete, name='track_delete'),
+    path('get_spotify_info/', views.get_spotify_info, name='get_spotify_info'),
 ]

@@ -4,9 +4,14 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.dateparse import parse_date
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .forms import ProjectForm, TrackForm, TrackProjectForm
-from .models import Platform, Project, Sale, Track
+from .models import Platform, Project, Sale, Track, SpotifyInfo
+from utils.spotify_utils import get_track_info
 
 
 def track_list(request):
@@ -50,7 +55,13 @@ def track_detail(request, pk):
     track = get_object_or_404(Track, pk=pk)
     project = track.project_set.first()
     platforms = track.platforms.all()
-    return render(request, 'tracks/track_detail.html', {'track': track, 'project': project, 'platforms': platforms})
+    spotify_info = SpotifyInfo.objects.filter(track=track).first()
+    return render(request, 'tracks/track_detail.html', {
+        'track': track, 
+        'project': project, 
+        'platforms': platforms,
+        'spotify_info': spotify_info
+    })
 
 def track_create(request):
     if request.method == "POST":
@@ -58,7 +69,7 @@ def track_create(request):
         if form.is_valid():
             track = Track.objects.create(
                 title=form.cleaned_data['title'],
-                spotify_url=form.cleaned_data['spotify_url'],
+                spotify_url=form.cleaned_data['spotify_url'],  # これは既に整形されています
                 flp_file_path=form.cleaned_data['flp_file_path']
             )
             Project.objects.create(
@@ -66,6 +77,22 @@ def track_create(request):
                 status=form.cleaned_data['status']
             )
             track.platforms.set(form.cleaned_data['platforms'])
+            
+            # Spotify情報を取得して保存
+            if form.cleaned_data['spotify_url']:
+                spotify_data = get_track_info(form.cleaned_data['spotify_url'])
+                if isinstance(spotify_data, dict):
+                    SpotifyInfo.objects.create(
+                        track=track,
+                        artist_name=spotify_data['artist_name'],
+                        track_name=spotify_data['track_name'],
+                        key=spotify_data['key'],
+                        mode=spotify_data['mode'],
+                        bpm=spotify_data['bpm'],
+                        genres=','.join(spotify_data['genres']),
+                        related_artists=','.join(spotify_data['related_artists'])
+                    )
+            
             return redirect('track_detail', pk=track.pk)
     else:
         form = TrackProjectForm()
@@ -78,7 +105,7 @@ def track_edit(request, pk):
         form = TrackProjectForm(request.POST)
         if form.is_valid():
             track.title = form.cleaned_data['title']
-            track.spotify_url = form.cleaned_data['spotify_url']
+            track.spotify_url = form.cleaned_data['spotify_url']  # これは既に整形されています
             track.flp_file_path = form.cleaned_data['flp_file_path']
             track.save()
             if project:
@@ -90,6 +117,24 @@ def track_edit(request, pk):
                     status=form.cleaned_data['status']
                 )
             track.platforms.set(form.cleaned_data['platforms'])
+            
+            # Spotify情報を更新
+            if form.cleaned_data['spotify_url']:
+                spotify_data = get_track_info(form.cleaned_data['spotify_url'])
+                if isinstance(spotify_data, dict):
+                    SpotifyInfo.objects.update_or_create(
+                        track=track,
+                        defaults={
+                            'artist_name': spotify_data['artist_name'],
+                            'track_name': spotify_data['track_name'],
+                            'key': spotify_data['key'],
+                            'mode': spotify_data['mode'],
+                            'bpm': spotify_data['bpm'],
+                            'genres': ','.join(spotify_data['genres']),
+                            'related_artists': ','.join(spotify_data['related_artists'])
+                        }
+                    )
+            
             return redirect('track_detail', pk=track.pk)
     else:
         initial_data = {
@@ -100,7 +145,7 @@ def track_edit(request, pk):
             'platforms': track.platforms.all()
         }
         form = TrackProjectForm(initial=initial_data)
-    return render(request, 'tracks/track_form.html', {'form': form})
+    return render(request, 'tracks/track_form.html', {'form': form, 'track': track})
 
 def track_delete(request, pk):
     track = get_object_or_404(Track, pk=pk)
@@ -108,3 +153,16 @@ def track_delete(request, pk):
         track.delete()
         return redirect('track_list')
     return render(request, 'tracks/track_confirm_delete.html', {'track': track})
+
+@require_POST
+@csrf_exempt
+def get_spotify_info(request):
+    data = json.loads(request.body)
+    spotify_url = data.get('spotify_url')
+    if spotify_url:
+        spotify_data = get_track_info(spotify_url)  # この行を確認してください
+        if isinstance(spotify_data, dict):
+            return JsonResponse(spotify_data)
+        else:
+            return JsonResponse({'error': str(spotify_data)})
+    return JsonResponse({'error': 'No Spotify URL provided'})

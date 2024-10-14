@@ -1,30 +1,85 @@
-<form method="post">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  <div>
-      {{ form.title.errors }}
-      <label for="{{ form.title.id_for_label }}">タイトル:</label>
-      {{ form.title }}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <h2>{% if track %}楽曲を編集{% else %}新しい楽曲を追加{% endif %}</h2>
+  <form method="post" id="trackForm">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div>
+        {{ form.title.errors }}
+        <label for="{{ form.title.id_for_label }}">タイトル:</label>
+        {{ form.title }}
+    </div>
+    <div>
+        {{ form.spotify_url.errors }}
+        <label for="{{ form.spotify_url.id_for_label }}">Spotify URL:</label>
+        {{ form.spotify_url }}
+    </div>
+    <div>
+        {{ form.flp_file_path.errors }}
+        <label for="{{ form.flp_file_path.id_for_label }}">FLPファイルパス:</label>
+        {{ form.flp_file_path }}
+    </div>
+    <div>
+        {{ form.status.errors }}
+        <label for="{{ form.status.id_for_label }}">ステータス:</label>
+        {{ form.status }}
+    </div>
+    <div>
+        {{ form.platforms.errors }}
+        <label for="{{ form.platforms.id_for_label }}">プラットフォーム:</label>
+        {{ form.platforms }}
+    </div>
+    <button type="submit">保存</button>
+  </form>
+
+  <div id="spotifyInfo" style="display: none;">
+    <h3>Spotify情報</h3>
+    <p id="artistName"></p>
+    <p id="trackName"></p>
+    <p id="key"></p>
+    <p id="mode"></p>
+    <p id="bpm"></p>
+    <p id="genres"></p>
+    <p id="relatedArtists"></p>
   </div>
-  <div>
-      {{ form.spotify_url.errors }}
-      <label for="{{ form.spotify_url.id_for_label }}">Spotify URL:</label>
-      {{ form.spotify_url }}
-  </div>
-  <div>
-      {{ form.flp_file_path.errors }}
-      <label for="{{ form.flp_file_path.id_for_label }}">FLPファイルパス:</label>
-      {{ form.flp_file_path }}
-  </div>
-  <div>
-      {{ form.status.errors }}
-      <label for="{{ form.status.id_for_label }}">ステータス:</label>
-      {{ form.status }}
-  </div>
-  <div>
-      {{ form.platforms.errors }}
-      <label for="{{ form.platforms.id_for_label }}">プラットフォーム:</label>
-      {{ form.platforms }}
-  </div>
-  <button type="submit">保存</button>
-</form>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#{{ form.spotify_url.id_for_label }}').on('change', function() {
+        var url = $(this).val();
+        if (url) {
+          $.ajax({
+            url: '{% url "get_spotify_info" %}',
+            type: 'POST',
+            data: JSON.stringify({'spotify_url': url}),
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+              if (data.error) {
+                alert(data.error);
+              } else {
+                $('#spotifyInfo').show();
+                $('#artistName').text('アーティスト: ' + data.artist_name);
+                $('#trackName').text('トラック: ' + data.track_name);
+                $('#key').text('キー: ' + data.key);
+                $('#mode').text('モード: ' + data.mode);
+                $('#bpm').text('BPM: ' + data.bpm);
+                $('#genres').text('ジャンル: ' + data.genres.join(', '));
+                $('#relatedArtists').text('関連アーティスト: ' + data.related_artists.join(', '));
+              }
+            },
+            error: function() {
+              alert('Spotify情報の取得に失敗しました。');
+            }
+          });
+        }
+      });
+    });
+  </script>
+{% endblock %}

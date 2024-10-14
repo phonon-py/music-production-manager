@@ -1,21 +1,44 @@
-<h1>{{ track.title }}</h1>
-<p>Spotify URL: {{ track.spotify_url|default:"未設定" }}</p>
-<p>FLPファイルパス: {{ track.flp_file_path|default:"未設定" }}</p>
-<p>ステータス: {{ project.get_status_display }}</p>
-<p>プラットフォーム:
-    {% if platforms %}
-        <ul>
-        {% for platform in platforms %}
-            <li>{{ platform.name }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        未設定
-    {% endif %}
-</p>
-<p>作成日時: {{ track.created_at }}</p>
-<p>更新日時: {{ track.updated_at }}</p>
+{% extends 'base.html' %}
 
-<a href="{% url 'track_edit' pk=track.pk %}">編集</a>
-<a href="{% url 'track_delete' pk=track.pk %}">削除</a>
-<a href="{% url 'track_list' %}">戻る</a>
+{% block content %}
+  <h1>{{ track.title }}</h1>
+  
+  <h2>基本情報</h2>
+  <p>Spotify URL: {{ track.spotify_url|default:"未設定" }}</p>
+  <p>FLPファイルパス: {{ track.flp_file_path|default:"未設定" }}</p>
+  
+  {% if project %}
+    <h2>プロジェクト情報</h2>
+    <p>ステータス: {{ project.get_status_display }}</p>
+  {% endif %}
+  
+  {% if platforms %}
+    <h2>プラットフォーム</h2>
+    <ul>
+      {% for platform in platforms %}
+        <li>{{ platform.name }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+  {% if spotify_info %}
+    <h2>Spotify情報</h2>
+    <p>アーティスト: {{ spotify_info.artist_name }}</p>
+    <p>トラック名: {{ spotify_info.track_name }}</p>
+    <p>キー: {{ spotify_info.key }}</p>
+    <p>モード: {{ spotify_info.mode }}</p>
+    <p>BPM: {{ spotify_info.bpm }}</p>
+    {% if spotify_info.genres %}
+      <p>ジャンル: {{ spotify_info.genres }}</p>
+    {% endif %}
+    {% if spotify_info.related_artists %}
+      <p>関連アーティスト: {{ spotify_info.related_artists }}</p>
+    {% endif %}
+  {% else %}
+    <p>Spotify情報の表示に失敗しました。</p>
+  {% endif %}
+  
+  <a href="{% url 'track_edit' pk=track.pk %}">編集</a>
+  <a href="{% url 'track_delete' pk=track.pk %}">削除</a>
+  <a href="{% url 'track_list' %}">楽曲リストに戻る</a>
+{% endblock %}

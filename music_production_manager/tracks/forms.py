@@ -1,5 +1,5 @@
 from django import forms
-
+from django.core.exceptions import ValidationError
 from .models import Platform, Project, Track
 
 
@@ -24,3 +24,21 @@ class TrackProjectForm(forms.Form):
         required=False,
         label='プラットフォーム'
     )
+
+    def clean_spotify_url(self):
+        url = self.cleaned_data.get('spotify_url')
+        if url:
+            # 'intl-ja' を削除
+            url = url.replace('intl-ja', '')
+
+            # URL内の '//' を '/' に置き換え
+            url = url.replace('//', '/')
+
+            # 'https:/' を 'https://' に戻す
+            url = url.replace('https:/', 'https://')
+
+            # Spotifyのトラックページのみを許可
+            if not url.startswith('https://open.spotify.com/track/'):
+                raise ValidationError('有効なSpotify トラックURLを入力してください。')
+
+        return url
